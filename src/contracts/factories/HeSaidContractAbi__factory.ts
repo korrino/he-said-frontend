@@ -32,32 +32,9 @@ const _abi = {
       "type": "bool",
       "components": null,
       "typeParameters": null
-    },
-    {
-      "typeId": 3,
-      "type": "u64",
-      "components": null,
-      "typeParameters": null
     }
   ],
   "functions": [
-    {
-      "inputs": [],
-      "name": "count",
-      "output": {
-        "name": "",
-        "type": 3,
-        "typeArguments": null
-      },
-      "attributes": [
-        {
-          "name": "storage",
-          "arguments": [
-            "read"
-          ]
-        }
-      ]
-    },
     {
       "inputs": [
         {
@@ -77,24 +54,6 @@ const _abi = {
           "name": "storage",
           "arguments": [
             "read"
-          ]
-        }
-      ]
-    },
-    {
-      "inputs": [],
-      "name": "increment",
-      "output": {
-        "name": "",
-        "type": 0,
-        "typeArguments": null
-      },
-      "attributes": [
-        {
-          "name": "storage",
-          "arguments": [
-            "read",
-            "write"
           ]
         }
       ]

@@ -10,7 +10,6 @@
 */
 
 import type {
-  BigNumberish,
   BN,
   BytesLike,
   Contract,
@@ -22,29 +21,21 @@ import type {
 
 interface HeSaidContractAbiInterface extends Interface {
   functions: {
-    count: FunctionFragment;
     did_say: FunctionFragment;
-    increment: FunctionFragment;
     say: FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: 'count', values: []): Uint8Array;
   encodeFunctionData(functionFragment: 'did_say', values: [string]): Uint8Array;
-  encodeFunctionData(functionFragment: 'increment', values: []): Uint8Array;
   encodeFunctionData(functionFragment: 'say', values: [string]): Uint8Array;
 
-  decodeFunctionData(functionFragment: 'count', data: BytesLike): DecodedValue;
   decodeFunctionData(functionFragment: 'did_say', data: BytesLike): DecodedValue;
-  decodeFunctionData(functionFragment: 'increment', data: BytesLike): DecodedValue;
   decodeFunctionData(functionFragment: 'say', data: BytesLike): DecodedValue;
 }
 
 export class HeSaidContractAbi extends Contract {
   interface: HeSaidContractAbiInterface;
   functions: {
-    count: InvokeFunction<[], BN>;
     did_say: InvokeFunction<[said: string], boolean>;
-    increment: InvokeFunction<[], void>;
     say: InvokeFunction<[said: string], void>;
   };
 }

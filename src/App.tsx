@@ -8,25 +8,20 @@ import { HeSaidContractAbi__factory } from "./contracts";
 
 // The address of the contract deployed the Fuel testnet
 const CONTRACT_ID =
-  "0x58017914279e13f7a8b51aaafc6a46ef81baac6c8f5082b750c9ffe7a9087f0b";
+  "0x447957a5b2c9cafe9e51dbdef7848cae92462b015295993c0bda41973b88ce8d";
 
 function App() {
   const [connected, setConnected] = useState<boolean>(false);
   const [account, setAccount] = useState<string>("");
-  const [counter, setCounter] = useState<number>(0);
   const [loaded, setLoaded] = useState(false);
   const [inputValue, setInputValue] = useState('Type something here...');
   const [verdictValue, setVerdictValue] = useState('Unknown');
 
-
-  const inputRef1 = useRef<HTMLInputElement>(null);
-  
   useEffect(() => {
     setTimeout(() => {
       checkConnection();
       setLoaded(true);
     }, 200)
-    if (connected) getCount();
   }, [connected])
 
   async function connect() {
@@ -49,30 +44,6 @@ function App() {
         const [account] = await window.fuel.accounts();
         setAccount(account);
         setConnected(true);
-      }
-    }
-  }
-
-  async function getCount() {
-    if (window.fuel) {
-      const wallet = await window.fuel.getWallet(account);
-      const contract = HeSaidContractAbi__factory.connect(CONTRACT_ID, wallet);
-      const { value } = await contract.functions.count().get();
-      setCounter(value.toNumber());
-    }
-  }
-
-  async function increment() {
-    if (window.fuel) {
-      const wallet = await window.fuel.getWallet(account);
-      const contract = HeSaidContractAbi__factory.connect(CONTRACT_ID, wallet);
-      // Creates a transactions to call the increment function
-      // because it creates a TX and updates the contract state this requires the wallet to have enough coins to cover the costs and also to sign the Transaction
-      try {
-        await contract.functions.increment().txParams({ gasPrice: 1 }).call();
-        getCount();
-      } catch(err) {
-        console.log("error sending transaction...", err);
       }
     }
   }
@@ -106,8 +77,10 @@ function App() {
         console.log("Calculated hash:"+hashString);
         const { value } = await contract.functions.did_say(hashString).get();
         if(value == true) {
+          console.log("True");
           setVerdictValue("True");
         } else {
+          console.log("False");
           setVerdictValue("False");
         }
       } catch(err) {
@@ -124,7 +97,7 @@ function App() {
         {
           connected ? (
             <>
-               <h3>Said:</h3><br/>
+               <h3>He Said She Said</h3><br/>
                <input type="text" placeholder={inputValue} onChange={event => setInputValue(event.target.value)}/>
                <br />
                <input type="text" placeholder={verdictValue} />
