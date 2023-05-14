@@ -1,26 +1,162 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useRef, useEffect, useState } from "react";
+import "@fuel-wallet/sdk";
+import { keccak256 } from 'js-sha3';
+import "./App.css";
+// Import the contract factory -- you can find the name in index.ts.
+// You can also do command + space and the compiler will suggest the correct name.
+import { HeSaidContractAbi__factory } from "./contracts";
+
+// The address of the contract deployed the Fuel testnet
+const CONTRACT_ID =
+  "0x58017914279e13f7a8b51aaafc6a46ef81baac6c8f5082b750c9ffe7a9087f0b";
 
 function App() {
+  const [connected, setConnected] = useState<boolean>(false);
+  const [account, setAccount] = useState<string>("");
+  const [counter, setCounter] = useState<number>(0);
+  const [loaded, setLoaded] = useState(false);
+  const [inputValue, setInputValue] = useState('Type something here...');
+  const [verdictValue, setVerdictValue] = useState('Unknown');
+
+
+  const inputRef1 = useRef<HTMLInputElement>(null);
+  
+  useEffect(() => {
+    setTimeout(() => {
+      checkConnection();
+      setLoaded(true);
+    }, 200)
+    if (connected) getCount();
+  }, [connected])
+
+  async function connect() {
+    if (window.fuel) {
+     try {
+       await window.fuel.connect();
+       const [account] = await window.fuel.accounts();
+       setAccount(account);
+       setConnected(true);
+     } catch(err) {
+       console.log("error connecting: ", err);
+     }
+    }
+   }
+
+  async function checkConnection() {
+    if (window.fuel) {
+      const isConnected = await window.fuel.isConnected();
+      if (isConnected) {
+        const [account] = await window.fuel.accounts();
+        setAccount(account);
+        setConnected(true);
+      }
+    }
+  }
+
+  async function getCount() {
+    if (window.fuel) {
+      const wallet = await window.fuel.getWallet(account);
+      const contract = HeSaidContractAbi__factory.connect(CONTRACT_ID, wallet);
+      const { value } = await contract.functions.count().get();
+      setCounter(value.toNumber());
+    }
+  }
+
+  async function increment() {
+    if (window.fuel) {
+      const wallet = await window.fuel.getWallet(account);
+      const contract = HeSaidContractAbi__factory.connect(CONTRACT_ID, wallet);
+      // Creates a transactions to call the increment function
+      // because it creates a TX and updates the contract state this requires the wallet to have enough coins to cover the costs and also to sign the Transaction
+      try {
+        await contract.functions.increment().txParams({ gasPrice: 1 }).call();
+        getCount();
+      } catch(err) {
+        console.log("error sending transaction...", err);
+      }
+    }
+  }
+
+  async function say() {
+    if (window.fuel) {
+      const wallet = await window.fuel.getWallet(account);
+      const contract = HeSaidContractAbi__factory.connect(CONTRACT_ID, wallet);
+      // Creates a transactions to call the increment function
+      // because it creates a TX and updates the contract state this requires the wallet to have enough coins to cover the costs and also to sign the Transaction
+      try {
+        const hash = keccak256(inputValue);
+        let hashString = "0x" + hash.toString();
+        console.log("Calculated hash:"+hashString);
+        await contract.functions.say(hashString).txParams({ gasPrice: 1 }).call();
+      } catch(err) {
+        console.log("error sending transaction...", err);
+      }
+    }
+  }
+
+  async function did_say() {
+    if (window.fuel) {
+      const wallet = await window.fuel.getWallet(account);
+      const contract = HeSaidContractAbi__factory.connect(CONTRACT_ID, wallet);
+      // Creates a transactions to call the increment function
+      // because it creates a TX and updates the contract state this requires the wallet to have enough coins to cover the costs and also to sign the Transaction
+      try {
+        const hash = keccak256(inputValue);
+        let hashString = "0x" + hash.toString();
+        console.log("Calculated hash:"+hashString);
+        const { value } = await contract.functions.did_say(hashString).get();
+        if(value == true) {
+          setVerdictValue("True");
+        } else {
+          setVerdictValue("False");
+        }
+      } catch(err) {
+        console.log("error sending transaction...", err);
+      }
+    }
+  }
+
+  if (!loaded) return null
+  
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <div className="App">
+        {
+          connected ? (
+            <>
+               <h3>Said:</h3><br/>
+               <input type="text" placeholder={inputValue} onChange={event => setInputValue(event.target.value)}/>
+               <br />
+               <input type="text" placeholder={verdictValue} />
+               <br />
+               <button style={buttonStyle} onClick={say}>
+                Say
+              </button><br />
+              <button style={buttonStyle} onClick={did_say}>
+                Did say?
+              </button><br />
+            </>
+          ) : (
+            <button style={buttonStyle} onClick={connect}>Connect</button>
+          )
+        }
+      </div>
+    </>
   );
 }
 
 export default App;
+
+const buttonStyle = {
+  borderRadius: "48px",
+  marginTop: "10px",
+  backgroundColor: "#03ffc8",
+  fontSize: "20px",
+  fontWeight: "600",
+  color: "rgba(0, 0, 0, .88)",
+  border: "none",
+  outline: "none",
+  height: "60px",
+  width: "400px",
+  cursor: "pointer"
+}
